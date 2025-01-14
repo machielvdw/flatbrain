@@ -27,6 +27,20 @@ npx flatbrain
 
 The `flatten` command processes the specified directory and creates a `flattened` folder containing all files with flattened paths.
 
+### Simplest Usage
+
+The simplest way to run Flatbrain is to use:
+
+```bash
+flatbrain flatten
+```
+
+By default, this command:
+
+- Processes the current working directory.
+- Automatically excludes paths specified in `.gitignore`.
+- Creates a `flattened` directory within the current directory.
+
 ### Command Syntax
 
 ```bash
