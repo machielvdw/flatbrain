@@ -9,6 +9,10 @@
   "scripts": {
     "test": "echo \"No test specified\" && exit 0"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/machielvdw/flatbrain.git"
+  },
   "keywords": [
     "flatten",
     "cli",
