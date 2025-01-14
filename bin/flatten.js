@@ -38,6 +38,10 @@ function walkDirectory(dirPath, fileList = [], rootDir, ig) {
       continue;
     }
 
+    if (entry.name === ".git") {
+      continue;
+    }
+
     const fullPath = path.join(dirPath, entry.name);
     // Relative path from rootDir to check against ignore rules
     const relativePath = path.relative(rootDir, fullPath);
