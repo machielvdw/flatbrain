@@ -1,6 +1,6 @@
 {
   "name": "flatbrain",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Flatten your project directories into a single folder",
   "type": "module",
   "bin": {
