@@ -34,7 +34,6 @@ function walkDirectory(dirPath, fileList = [], rootDir, ig) {
   const entries = fs.readdirSync(dirPath, { withFileTypes: true });
 
   for (const entry of entries) {
-    // Skip the flattened directory if it exists
     if (entry.name === "flattened") {
       continue;
     }
@@ -54,6 +53,7 @@ function walkDirectory(dirPath, fileList = [], rootDir, ig) {
       fileList.push(fullPath);
     }
   }
+
   return fileList;
 }
 
@@ -72,14 +72,12 @@ function getFlattenedFileName(filePath, rootDir) {
 }
 
 /**
- * Main function to create the flattened directory and copy files.
+ * Perform the flattening of a directory.
+ * @param {string} [providedPath] - The directory to flatten (defaults to CWD if not provided).
  */
-function flattenProject() {
-  // If a path is provided, use that; otherwise, default to current directory
-  const providedPath = process.argv[2];
+function flattenProject(providedPath) {
   const rootDir = providedPath ? path.resolve(providedPath) : process.cwd();
 
-  // Validate directory
   if (!fs.existsSync(rootDir)) {
     console.error(`Directory "${rootDir}" does not exist.`);
     process.exit(1);
@@ -89,20 +87,16 @@ function flattenProject() {
     process.exit(1);
   }
 
-  // Load .gitignore rules (if any)
   const ig = loadGitignore(rootDir);
 
-  // Create (or re-create) the flattened directory
   const flattenedDir = path.join(rootDir, "flattened");
   if (fs.existsSync(flattenedDir)) {
     fs.rmSync(flattenedDir, { recursive: true, force: true });
   }
   fs.mkdirSync(flattenedDir);
 
-  // Recursively collect all file paths from root
   const filePaths = walkDirectory(rootDir, [], rootDir, ig);
 
-  // Copy each file into the flattened folder
   for (const filePath of filePaths) {
     const flattenedFileName = getFlattenedFileName(filePath, rootDir);
     const destPath = path.join(flattenedDir, flattenedFileName);
@@ -113,5 +107,24 @@ function flattenProject() {
   console.log("Flattened project created successfully!");
 }
 
-// Run immediately
-flattenProject();
+function main() {
+  const args = process.argv.slice(2);
+
+  const command = args[0];
+
+  if (command === "flatten") {
+    const directoryArg = args[1];
+    flattenProject(directoryArg);
+  } else {
+    console.log(`
+Usage:
+  flatbrain flatten <directory>
+
+Examples:
+  flatbrain flatten
+  flatbrain flatten ./src
+`);
+  }
+}
+
+main();
