@@ -18,6 +18,7 @@
   "author": "Machiel <machiel@machiel.dev>",
   "license": "MIT",
   "dependencies": {
-    "ignore": "^7.0.3"
+    "ignore": "^7.0.3",
+    "update-notifier": "^7.3.1"
   }
 }

@@ -3,6 +3,10 @@
 import fs from "node:fs";
 import path from "node:path";
 import ignore from "ignore";
+import updateNotifier from 'update-notifier';
+import pkg from '../package.json' assert { type: 'json' };
+
+updateNotifier({ pkg }).notify();
 
 /**
  * Load and parse .gitignore
