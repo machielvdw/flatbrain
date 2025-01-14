@@ -109,7 +109,6 @@ function flattenProject(providedPath) {
     const flattenedFileName = getFlattenedFileName(filePath, rootDir);
     const destPath = path.join(flattenedDir, flattenedFileName);
     fs.copyFileSync(filePath, destPath);
-    console.log(`Copied: ${filePath} -> ${destPath}`);
   }
 
   console.log("Flattened project created successfully!");
