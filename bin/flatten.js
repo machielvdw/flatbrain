@@ -2,16 +2,37 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import ignore from "ignore";
+
+/**
+ * Load and parse .gitignore using the "ignore" library.
+ * @param {string} rootDir - The root directory.
+ * @returns {import('ignore').Ignore} - The ignore instance.
+ */
+function loadGitignore(rootDir) {
+  const ig = ignore();
+  const gitignorePath = path.join(rootDir, ".gitignore");
+
+  if (fs.existsSync(gitignorePath)) {
+    const gitignoreContents = fs.readFileSync(gitignorePath, "utf8");
+    ig.add(gitignoreContents.split("\n"));
+  }
+
+  return ig;
+}
 
 /**
  * Recursively walks through a directory and returns an array of file paths.
+ *
  * @param {string} dirPath - The directory to walk.
  * @param {string[]} fileList - Accumulator for file paths.
  * @param {string} rootDir - The root directory where "flattened" will be placed.
+ * @param {import('ignore').Ignore} ig - The ignore instance (with .gitignore rules).
  * @returns {string[]} - Array of absolute file paths.
  */
-function walkDirectory(dirPath, fileList = [], rootDir) {
+function walkDirectory(dirPath, fileList = [], rootDir, ig) {
   const entries = fs.readdirSync(dirPath, { withFileTypes: true });
+
   for (const entry of entries) {
     // Skip the flattened directory if it exists
     if (entry.name === "flattened") {
@@ -19,8 +40,16 @@ function walkDirectory(dirPath, fileList = [], rootDir) {
     }
 
     const fullPath = path.join(dirPath, entry.name);
+    // Relative path from rootDir to check against ignore rules
+    const relativePath = path.relative(rootDir, fullPath);
+
+    // Check if this path is ignored
+    if (ig.ignores(relativePath)) {
+      continue;
+    }
+
     if (entry.isDirectory()) {
-      walkDirectory(fullPath, fileList, rootDir);
+      walkDirectory(fullPath, fileList, rootDir, ig);
     } else {
       fileList.push(fullPath);
     }
@@ -32,6 +61,7 @@ function walkDirectory(dirPath, fileList = [], rootDir) {
  * Given an absolute file path and the root directory, return
  * the "flattened" filename where subdirectories are replaced with ^.
  * e.g., root/sub/test.js => sub^test.js
+ *
  * @param {string} filePath - The absolute path of the file.
  * @param {string} rootDir - The root directory path.
  * @returns {string} - The filename for the flattened folder.
@@ -59,6 +89,9 @@ function flattenProject() {
     process.exit(1);
   }
 
+  // Load .gitignore rules (if any)
+  const ig = loadGitignore(rootDir);
+
   // Create (or re-create) the flattened directory
   const flattenedDir = path.join(rootDir, "flattened");
   if (fs.existsSync(flattenedDir)) {
@@ -67,7 +100,7 @@ function flattenProject() {
   fs.mkdirSync(flattenedDir);
 
   // Recursively collect all file paths from root
-  const filePaths = walkDirectory(rootDir, [], rootDir);
+  const filePaths = walkDirectory(rootDir, [], rootDir, ig);
 
   // Copy each file into the flattened folder
   for (const filePath of filePaths) {

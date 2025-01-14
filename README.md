@@ -5,7 +5,8 @@ Flatbrain is a command-line tool that flattens a directory's file structure by c
 ## Features
 
 - Recursively flattens files from a directory into a `flattened` directory.
-- Allows excluding specific directories and files.
+- Automatically excludes files and folders specified in `.gitignore`.
+- Allows excluding specific directories and files via command-line options.
 - Ensures unique filenames in the flattened directory.
 
 ## Installation
@@ -63,9 +64,26 @@ Exclude a specific file, e.g., `test.js`:
 flatbrain flatten ./src --excludeFile=test.js
 ```
 
+#### Automatically Exclude `.gitignore` Paths
+
+Files and folders listed in a `.gitignore` file within the directory are automatically excluded. For example:
+
+```bash
+flatbrain flatten ./src
+```
+
+If `.gitignore` contains:
+
+```plaintext
+node_modules
+*.log
+```
+
+These paths and files will be excluded from the flattening process.
+
 #### Combined Usage
 
-Flatten `./src`, excluding `node_modules` and `test.js`:
+Flatten `./src`, excluding `node_modules`, `test.js`, and respecting `.gitignore`:
 
 ```bash
 flatbrain flatten ./src --excludeDir=node_modules --excludeFile=test.js
