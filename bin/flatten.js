@@ -5,7 +5,7 @@ import path from "node:path";
 import ignore from "ignore";
 
 /**
- * Load and parse .gitignore using the "ignore" library.
+ * Load and parse .gitignore
  * @param {string} rootDir - The root directory.
  * @returns {import('ignore').Ignore} - The ignore instance.
  */
