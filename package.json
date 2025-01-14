@@ -1,0 +1,20 @@
+{
+  "name": "flatbrain",
+  "version": "1.0.0",
+  "description": "Flatten your project directories into a single folder",
+  "type": "module",
+  "bin": {
+    "flatbrain": "./bin/flatten.js"
+  },
+  "scripts": {
+    "test": "echo \"No test specified\" && exit 0"
+  },
+  "keywords": [
+    "flatten",
+    "cli",
+    "directory",
+    "files"
+  ],
+  "author": "Your Name <your.email@example.com>",
+  "license": "MIT"
+}
