@@ -1,10 +1,10 @@
 {
   "name": "flatbrain",
-  "version": "1.2.0",
+  "version": "2.0.0",
   "description": "Flatten your project directories into a single folder",
   "type": "module",
   "bin": {
-    "flatbrain": "./bin/flatten.js"
+    "flatbrain": "./bin/index.js"
   },
   "scripts": {
     "test": "echo \"No test specified\" && exit 0"
