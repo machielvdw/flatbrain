@@ -8,6 +8,7 @@ Flatbrain is a command-line tool that flattens a directory's file structure by c
 - Automatically excludes files and folders specified in `.gitignore`.
 - Allows excluding specific directories and files via command-line options.
 - Allows converting specific file extensions to `.txt`.
+- Concatenates all files into a single text file with headers using the `concat` command.
 - Ensures unique filenames in the flattened directory.
 
 ## Installation
@@ -26,11 +27,15 @@ npx flatbrain
 
 ## Usage
 
+Flatbrain provides two main commands: `flatten` and `concat`.
+
+### Flatten Command
+
 The `flatten` command processes the specified directory and creates a `flattened` folder containing all files with flattened paths.
 
-### Simplest Usage
+#### Simplest Usage
 
-The simplest way to run Flatbrain is to use:
+The simplest way to run Flatbrain is:
 
 ```bash
 flatbrain flatten
@@ -42,22 +47,20 @@ By default, this command:
 - Automatically excludes paths specified in `.gitignore`.
 - Creates a `flattened` directory within the current directory.
 
-### Command Syntax
+#### Command Syntax
 
 ```bash
 flatbrain flatten <directory> [options]
 ```
 
-### Options
+#### Options
 
 - `--excludeDir=<directory>`: Exclude specific directories.
 - `--excludeFile=<file>`: Exclude specific files.
 - `--toTxt <extension>`: Convert files with these extensions to `.txt`.
-<small>(Can be specified multiple times. Example: --toTxt=.vue --toTxt=.schema)</small>
+  - Can be specified multiple times (e.g., `--toTxt=.vue --toTxt=.schema`).
 
-### Examples
-
-#### Basic Usage
+#### Examples
 
 Flatten all files in the `./src` directory:
 
@@ -65,15 +68,11 @@ Flatten all files in the `./src` directory:
 flatbrain flatten ./src
 ```
 
-#### Exclude Specific Directories
-
 Exclude the `node_modules` directory:
 
 ```bash
 flatbrain flatten ./src --excludeDir=node_modules
 ```
-
-#### Exclude Specific Files
 
 Exclude a specific file, e.g., `test.js`:
 
@@ -81,9 +80,7 @@ Exclude a specific file, e.g., `test.js`:
 flatbrain flatten ./src --excludeFile=test.js
 ```
 
-#### Automatically Exclude `.gitignore` Paths
-
-Files and folders listed in a `.gitignore` file within the directory are automatically excluded. For example:
+Automatically exclude paths listed in `.gitignore`:
 
 ```bash
 flatbrain flatten ./src
@@ -98,20 +95,70 @@ node_modules
 
 These paths and files will be excluded from the flattening process.
 
-#### Combined Usage
-
-Flatten `./src`, excluding `node_modules`, `test.js`, and respecting `.gitignore`:
+Combine options:
 
 ```bash
 flatbrain flatten ./src --excludeDir=node_modules --excludeFile=test.js
 ```
 
-## Output
-
 The flattened files are stored in a directory named `flattened` within the specified directory. Subdirectories are represented using a `^` character in filenames. For example:
 
 ```plaintext
 ./src/sub/test.js → ./flattened/sub^test.js
+```
+
+---
+
+### Concat Command
+
+The `concat` command concatenates the contents of all files in a directory into a single text file. Each file's content is prefixed by a header showing the relative file path.
+
+#### Simplest Usage
+
+The simplest way to run Flatbrain's concat command is:
+
+```bash
+flatbrain concat
+```
+
+This creates a file named `all.txt` in a `concat` directory under the current working directory.
+
+#### Command Syntax
+
+```bash
+flatbrain concat <directory> [options]
+```
+
+#### Options
+
+- `--excludeDir=<directory>`: Exclude specific directories.
+- `--excludeFile=<file>`: Exclude specific files.
+- `--output <file>`: Specify a custom output file name (default: `all.txt`).
+
+#### Examples
+
+Concatenate all files in `./src` into a single file:
+
+```bash
+flatbrain concat ./src
+```
+
+Exclude the `node_modules` directory and specify a custom output file:
+
+```bash
+flatbrain concat ./src --excludeDir=node_modules --output=myOutput.txt
+```
+
+#### Output Example
+
+Contents of the concatenated file:
+
+```plaintext
+=== src/sub/test.js ===
+console.log('Hello, world!');
+
+=== src/index.js ===
+import app from './app.js';
 ```
 
 ## License
