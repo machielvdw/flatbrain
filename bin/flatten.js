@@ -44,8 +44,8 @@ function walkDirectory(
   const entries = fs.readdirSync(dirPath, { withFileTypes: true });
 
   for (const entry of entries) {
-    // Skip the flattened directory itself
-    if (entry.name === 'flattened') continue;
+    // Skip the top-level flatbrain directory itself
+    if (entry.name === 'flatbrain') continue;
     // Skip .git
     if (entry.name === '.git') continue;
 
@@ -94,7 +94,7 @@ function getFlattenedFileName(filePath, rootDir) {
  *  1) Validate the directory
  *  2) Load .gitignore
  *  3) Walk the directory
- *  4) Copy files to "flattened", optionally converting certain extensions to .txt
+ *  4) Copy files to "flatbrain/flattened", optionally converting certain extensions to .txt
  *
  * @param {string} directoryArg - Directory path (or undefined).
  * @param {Set<string>} excludeDirs - Directories to exclude.
@@ -118,10 +118,19 @@ function flattenProject(directoryArg, excludeDirs, excludeFiles, toTxtExtensions
   // Load .gitignore
   const ig = loadGitignore(rootDir);
 
-  // Remove/create a fresh "flattened" directory
-  const flattenedDir = path.join(rootDir, 'flattened');
-  if (fs.existsSync(flattenedDir)) {
-    fs.rmSync(flattenedDir, { recursive: true, force: true });
+  // Prepare flatbrain output directories
+  const flatbrainDir = path.join(rootDir, 'flatbrain');
+  const flattenedDir = path.join(flatbrainDir, 'flattened');
+
+  // Ensure a fresh "flatbrain/flattened" directory
+  if (fs.existsSync(flatbrainDir)) {
+    // Remove only the flattened dir if it exists
+    if (fs.existsSync(flattenedDir)) {
+      fs.rmSync(flattenedDir, { recursive: true, force: true });
+    }
+  } else {
+    // Create the parent flatbrain folder
+    fs.mkdirSync(flatbrainDir);
   }
   fs.mkdirSync(flattenedDir);
 
@@ -142,7 +151,85 @@ function flattenProject(directoryArg, excludeDirs, excludeFiles, toTxtExtensions
     fs.copyFileSync(filePath, destPath);
   }
 
-  console.log('Flattened project created successfully!');
+  console.log('Flattened project created successfully in flatbrain/flattened!');
+}
+
+/**
+ * Concatenate all files into a single file, with file paths as headers.
+ *
+ * @param {string} directoryArg - Directory path (or undefined).
+ * @param {Set<string>} excludeDirs - Directories to exclude.
+ * @param {Set<string>} excludeFiles - Files to exclude.
+ * @param {string} outputFile - The output file name (defaults to "all.txt").
+ */
+function concatenateFiles(directoryArg, excludeDirs, excludeFiles, outputFile) {
+  // Default to current working directory if none provided
+  const rootDir = directoryArg ? path.resolve(directoryArg) : process.cwd();
+
+  // Validate directory
+  if (!fs.existsSync(rootDir)) {
+    console.error(`Directory "${rootDir}" does not exist.`);
+    process.exit(1);
+  }
+  if (!fs.lstatSync(rootDir).isDirectory()) {
+    console.error(`Path "${rootDir}" is not a directory.`);
+    process.exit(1);
+  }
+
+  // Load .gitignore
+  const ig = loadGitignore(rootDir);
+
+  // Prepare flatbrain output directories
+  const flatbrainDir = path.join(rootDir, 'flatbrain');
+  const concatDir = path.join(flatbrainDir, 'concat');
+  if (!fs.existsSync(flatbrainDir)) {
+    fs.mkdirSync(flatbrainDir);
+  }
+  if (fs.existsSync(concatDir)) {
+    // Optional: remove existing files if you want it fresh each time
+    // or handle however you'd like
+    // fs.rmSync(concatDir, { recursive: true, force: true });
+  } else {
+    fs.mkdirSync(concatDir);
+  }
+
+  // Default output file name if none provided
+  outputFile = outputFile || 'all.txt';
+  // Final path for the concatenated file
+  const outPath = path.join(concatDir, outputFile);
+
+  // Gather all file paths
+  const filePaths = walkDirectory(rootDir, [], rootDir, ig, excludeDirs, excludeFiles);
+
+  // If the file already exists, remove it first (optional)
+  if (fs.existsSync(outPath)) {
+    fs.rmSync(outPath);
+  }
+
+  // Open a write stream
+  const writeStream = fs.createWriteStream(outPath, { flags: 'a', encoding: 'utf8' });
+
+  // Loop through all files and append to outPath
+  for (const filePath of filePaths) {
+    const relative = path.relative(rootDir, filePath);
+    // Write a header line
+    writeStream.write(`\n=== ${relative} ===\n`);
+    // Read file content
+    try {
+      const content = fs.readFileSync(filePath, 'utf8');
+      writeStream.write(content);
+      // Ensure a newline
+      if (!content.endsWith('\n')) {
+        writeStream.write('\n');
+      }
+    } catch (err) {
+      writeStream.write(`[Error reading file: ${err.message}]\n`);
+    }
+  }
+
+  writeStream.end(() => {
+    console.log(`All files concatenated into "${outPath}"`);
+  });
 }
 
 // ----------------------------------------------------------------------------
@@ -155,22 +242,39 @@ const program = new Command();
 program
   .name('flatbrain')
   .description('Flatbrain: File Structure Flattener')
-  .version('1.1.1');
+  .version('1.2.0');
 
 // Define the "flatten" subcommand
 program
   .command('flatten [directory]')
-  .description('Flattens the specified directory into a single folder, e.g. "flatbrain flatten ./src"')
+  .description('Flattens the specified directory into flatbrain/flattened.')
   .option('--excludeDir <dir...>', 'Exclude specific directories (by name)', [])
   .option('--excludeFile <file...>', 'Exclude specific files (by name)', [])
   .option('--toTxt <ext...>', 'Convert files with these extensions to .txt (e.g. .vue, .schema)', [])
   .action((directory, options) => {
-    // Convert arrays from Commander to sets
     const excludeDirs = new Set(options.excludeDir ?? []);
     const excludeFiles = new Set(options.excludeFile ?? []);
     const toTxtExtensions = new Set(options.toTxt ?? []);
 
     flattenProject(directory, excludeDirs, excludeFiles, toTxtExtensions);
+  });
+
+/**
+ * New subcommand: "concat"
+ * Concatenates all file contents into a single file (flatbrain/concat/all.txt by default)
+ */
+program
+  .command('concat [directory]')
+  .description('Concatenate all files into a single file in flatbrain/concat.')
+  .option('--excludeDir <dir...>', 'Exclude specific directories (by name)', [])
+  .option('--excludeFile <file...>', 'Exclude specific files (by name)', [])
+  .option('--output <file>', 'Output file name (defaults to "all.txt")', 'all.txt')
+  .action((directory, options) => {
+    const excludeDirs = new Set(options.excludeDir ?? []);
+    const excludeFiles = new Set(options.excludeFile ?? []);
+    const outputFile = options.output || 'all.txt';
+
+    concatenateFiles(directory, excludeDirs, excludeFiles, outputFile);
   });
 
 // If the user calls just "flatbrain" without subcommands, show help
