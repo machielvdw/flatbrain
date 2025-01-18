@@ -7,6 +7,7 @@ Flatbrain is a command-line tool that flattens a directory's file structure by c
 - Recursively flattens files from a directory into a `flattened` directory.
 - Automatically excludes files and folders specified in `.gitignore`.
 - Allows excluding specific directories and files via command-line options.
+- Allows converting specific file extensions to `.txt`.
 - Ensures unique filenames in the flattened directory.
 
 ## Installation
@@ -51,6 +52,8 @@ flatbrain flatten <directory> [options]
 
 - `--excludeDir=<directory>`: Exclude specific directories.
 - `--excludeFile=<file>`: Exclude specific files.
+- `--toTxt <extension>`: Convert files with these extensions to `.txt`.
+<small>(Can be specified multiple times. Example: --toTxt=.vue --toTxt=.schema)</small>
 
 ### Examples
 
