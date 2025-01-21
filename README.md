@@ -5,7 +5,7 @@ Flatbrain is a command-line tool that flattens a directory's file structure by c
 ## Features
 
 - Recursively flattens files from a directory into a `flattened` directory.
-- Automatically excludes files and folders specified in `.gitignore`.
+- Automatically excludes files and folders specified in `.gitignore`, and common lockfiles.
 - Allows excluding specific directories and files via command-line options.
 - Allows converting specific file extensions to `.txt`.
 - Concatenates all files into a single text file with headers using the `concat` command.

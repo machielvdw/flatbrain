@@ -238,31 +238,33 @@ function concatenateFiles(directoryArg, excludeDirs, excludeFiles, outputFile) {
 
 const program = new Command();
 
-// Basic metadata
+const DEFAULT_LOCKFILES = new Set([
+  'yarn.lock',
+  'package-lock.json',
+  'pnpm-lock.yaml',
+]);
+
 program
   .name('flatbrain')
   .description('Flatbrain: File Structure Flattener')
-  .version('1.2.0');
+  .version('2.1.0', '-v, --version', 'Output the current version');
 
-// Define the "flatten" subcommand
 program
   .command('flatten [directory]')
   .description('Flattens the specified directory into flatbrain/flattened.')
   .option('--excludeDir <dir...>', 'Exclude specific directories (by name)', [])
   .option('--excludeFile <file...>', 'Exclude specific files (by name)', [])
-  .option('--toTxt <ext...>', 'Convert files with these extensions to .txt (e.g. .vue, .schema)', [])
+  .option('--toTxt <ext...>', 'Convert files with these extensions to .txt (e.g. .vue, .prisma)', [])
   .action((directory, options) => {
+    const userExcludeFiles = new Set(options.excludeFile ?? []);
+    const excludeFiles = new Set([...DEFAULT_LOCKFILES, ...userExcludeFiles]);
+
     const excludeDirs = new Set(options.excludeDir ?? []);
-    const excludeFiles = new Set(options.excludeFile ?? []);
     const toTxtExtensions = new Set(options.toTxt ?? []);
 
     flattenProject(directory, excludeDirs, excludeFiles, toTxtExtensions);
   });
 
-/**
- * New subcommand: "concat"
- * Concatenates all file contents into a single file (flatbrain/concat/all.txt by default)
- */
 program
   .command('concat [directory]')
   .description('Concatenate all files into a single file in flatbrain/concat.')
@@ -270,17 +272,17 @@ program
   .option('--excludeFile <file...>', 'Exclude specific files (by name)', [])
   .option('--output <file>', 'Output file name (defaults to "all.txt")', 'all.txt')
   .action((directory, options) => {
+    const userExcludeFiles = new Set(options.excludeFile ?? []);
+    const excludeFiles = new Set([...DEFAULT_LOCKFILES, ...userExcludeFiles]);
+
     const excludeDirs = new Set(options.excludeDir ?? []);
-    const excludeFiles = new Set(options.excludeFile ?? []);
     const outputFile = options.output || 'all.txt';
 
     concatenateFiles(directory, excludeDirs, excludeFiles, outputFile);
   });
 
-// If the user calls just "flatbrain" without subcommands, show help
 if (!process.argv.slice(2).length) {
   program.outputHelp();
 }
 
-// Parse the command-line arguments
 program.parse(process.argv);
