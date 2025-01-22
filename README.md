@@ -1,6 +1,6 @@
 # Flatbrain: File Structure Flattener
 
-Flatbrain is a command-line tool that flattens a directory's file structure by copying all files into a single directory. Subdirectories are represented in filenames using a `^` delimiter. This tool is particularly useful for LLM projects or managing files with nested structures.
+Flatbrain is a command-line tool that flattens a directory's file structure by copying all files into a single directory. Subdirectories are represented in filenames using a `^` delimiter. This tool is particularly useful for LLM projects.
 
 ## Features
 
